@@ -1,0 +1,104 @@
+/* Copied and adapted from styles_reference.css for consistent look */
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f8f9fa;
+  color: #222;
+  margin: 0;
+  padding: 0;
+}
+h1 {
+  text-align: center;
+  color: #007bff;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+}
+form#converter-form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2em;
+  margin: 0 auto 1.5em auto;
+  max-width: 700px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  padding: 1.5em 1em 1em 1em;
+}
+.input-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  min-width: 220px;
+}
+.input-column h2 {
+  margin: 0 0 0.5em 0;
+  color: #444;
+  font-size: 1.1em;
+}
+label {
+  font-weight: 500;
+  margin-bottom: 0.1em;
+}
+input[type="number"], select {
+  padding: 0.4em 0.6em;
+  border: 1px solid #bbb;
+  border-radius: 5px;
+  font-size: 1em;
+  background: #f9f9f9;
+  margin-bottom: 0.2em;
+}
+input[type="number"]:focus, select:focus {
+  outline: 2px solid #007bff33;
+  border-color: #007bff;
+}
+.button-row {
+  display: flex;
+  gap: 1em;
+  justify-content: center;
+  margin-top: 1.2em;
+}
+button {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+button:hover, button:focus {
+  background: #0056b3;
+}
+.readonly-output {
+  background: #e9f3ff;
+  border: 1px solid #b6d4fe;
+  border-radius: 8px;
+  max-width: 420px;
+  margin: 1.5em auto 0 auto;
+  padding: 1.2em 1em;
+  font-size: 1.1em;
+  color: #1a2a3a;
+  text-align: center;
+  word-break: break-word;
+}
+#error-message {
+  text-align: center;
+  margin-top: 0.7em;
+  min-height: 1.2em;
+}
+#offline-notification {
+  text-align: center;
+  margin-top: 1.5em;
+}
+@media (max-width: 700px) {
+  form#converter-form {
+    flex-direction: column;
+    gap: 1.2em;
+    padding: 1em 0.5em 0.7em 0.5em;
+  }
+  .input-column {
+    min-width: 0;
+  }
+}
