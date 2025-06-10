@@ -39,7 +39,7 @@ label {
   font-weight: 500;
   margin-bottom: 0.1em;
 }
-input[type="number"], select {
+input[type="number"], select, .dropdown-input {
   padding: 0.4em 0.6em;
   border: 1px solid #bbb;
   border-radius: 5px;
@@ -47,7 +47,7 @@ input[type="number"], select {
   background: #f9f9f9;
   margin-bottom: 0.2em;
 }
-input[type="number"]:focus, select:focus {
+input[type="number"]:focus, select:focus, .dropdown-input:focus {
   outline: 2px solid #007bff33;
   border-color: #007bff;
 }
