@@ -9,8 +9,7 @@
     "dumbbell_fly": 0.50,
     "overhead_press": 0.65,
     "dumbbell_overhead_press": 0.60,
-    "decline_dumbbell_overhead_press": 0.60,
-    "pushup": 0.64
+    "decline_dumbbell_overhead_press": 0.60
   },
   "toSquatFactors": {
     "squat": 1.0,

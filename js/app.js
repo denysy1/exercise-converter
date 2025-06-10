@@ -9,8 +9,7 @@ const DEFAULT_CONFIG = {
     "dumbbell_fly": 0.50,
     "overhead_press": 0.65,
     "dumbbell_overhead_press": 0.60,
-    "decline_dumbbell_overhead_press": 0.60,
-    "pushup": 0.64
+    "decline_dumbbell_overhead_press": 0.60
   },
   "toSquatFactors": {
     "squat": 1.0,
@@ -36,23 +35,88 @@ function formatExerciseName(key) {
   return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
-function populateDropdowns() {
-  const refSel = document.getElementById('refExercise');
-  const targetSel = document.getElementById('targetExercise');
-  refSel.innerHTML = '';
-  targetSel.innerHTML = '';
-  allExercises.forEach(ex => {
-    const opt1 = document.createElement('option');
-    opt1.value = ex;
-    opt1.textContent = formatExerciseName(ex);
-    refSel.appendChild(opt1);
-    const opt2 = document.createElement('option');
-    opt2.value = ex;
-    opt2.textContent = formatExerciseName(ex);
-    targetSel.appendChild(opt2);
+function getExerciseKeyFromInput(inputId) {
+  const input = document.getElementById(inputId);
+  const val = input.value.trim().toLowerCase();
+  // Try to match input value to an exercise key
+  const match = allExercises.find(ex => formatExerciseName(ex).toLowerCase() === val);
+  return match || '';
+}
+
+function setupAwesompleteCombobox() {
+  // Create grouped exercise list with separator
+  const upperBodyNames = upperBodyExercises.map(formatExerciseName);
+  const lowerBodyNames = lowerBodyExercises.map(formatExerciseName);
+  
+  // Combine with a separator
+  const groupedExercises = [
+    ...upperBodyNames,
+    '────────────────────────────', // Visual separator
+    ...lowerBodyNames
+  ];
+    // Initialize Awesomplete for both inputs with the grouped list
+  const refComplete = new Awesomplete('input#refExerciseInput', {
+    list: groupedExercises,
+    minChars: 0,
+    maxItems: 20,
+    autoFirst: true,
+    sort: false, // Prevent Awesomplete from sorting the list
+    filter: function(text, input) {
+      // Don't allow selection of the separator line
+      if (text === '────────────────────────────') return false;
+      return Awesomplete.FILTER_CONTAINS(text, input);
+    },
+    item: function(text, input) {
+      // Style the separator line differently
+      if (text === '────────────────────────────') {
+        return Awesomplete.$.create("li", {
+          innerHTML: '<span style="color: #999; font-size: 0.8em; pointer-events: none;">────────────────────────────</span>',
+          "aria-selected": "false"
+        });
+      }
+      return Awesomplete.ITEM(text, input);
+    }
   });
-  refSel.value = '';
-  targetSel.value = '';
+  
+  const targetComplete = new Awesomplete('input#targetExerciseInput', {
+    list: groupedExercises,
+    minChars: 0,
+    maxItems: 20,
+    autoFirst: true,
+    sort: false, // Prevent Awesomplete from sorting the list
+    filter: function(text, input) {
+      // Don't allow selection of the separator line
+      if (text === '────────────────────────────') return false;
+      return Awesomplete.FILTER_CONTAINS(text, input);
+    },
+    item: function(text, input) {
+      // Style the separator line differently
+      if (text === '────────────────────────────') {
+        return Awesomplete.$.create("li", {
+          innerHTML: '<span style="color: #999; font-size: 0.8em; pointer-events: none;">────────────────────────────</span>',
+          "aria-selected": "false"
+        });
+      }
+      return Awesomplete.ITEM(text, input);
+    }
+  });
+  
+  // Add click handlers to show dropdown on focus
+  document.getElementById('refExerciseInput').addEventListener('focus', function() {
+    if (refComplete.ul.childNodes.length === 0) {
+      refComplete.minChars = 0;
+      refComplete.evaluate();
+    }
+    refComplete.open();
+  });
+  
+  document.getElementById('targetExerciseInput').addEventListener('focus', function() {
+    if (targetComplete.ul.childNodes.length === 0) {
+      targetComplete.minChars = 0;
+      targetComplete.evaluate();
+    }
+    targetComplete.open();
+  });
 }
 
 function getFactor(ex, type) {
@@ -135,10 +199,10 @@ function handleFormSubmit(e) {
   e.preventDefault();
   clearError();
   try {
-    const refExercise = document.getElementById('refExercise').value;
+    const refExercise = getExerciseKeyFromInput('refExerciseInput');
     const refWeight = parseFloat(document.getElementById('refWeight').value);
     const refReps = parseInt(document.getElementById('refReps').value, 10);
-    const targetExercise = document.getElementById('targetExercise').value;
+    const targetExercise = getExerciseKeyFromInput('targetExerciseInput');
     const targetReps = parseInt(document.getElementById('targetReps').value, 10);
     if (!refExercise || !targetExercise || isNaN(refWeight) || isNaN(refReps) || isNaN(targetReps) || refWeight <= 0 || refReps <= 0 || targetReps <= 0) {
       showError('Please enter valid numbers for all fields.');
@@ -154,6 +218,18 @@ function handleFormSubmit(e) {
     showError(err.message);
   }
 }
+
+function checkOffline() {
+  const offlineDiv = document.getElementById('offline-notification');
+  if (!navigator.onLine) {
+    offlineDiv.style.display = 'block';
+  } else {
+    offlineDiv.style.display = 'none';
+  }
+}
+
+window.addEventListener('online', checkOffline);
+window.addEventListener('offline', checkOffline);
 
 document.getElementById('converter-form').addEventListener('submit', handleFormSubmit);
 document.getElementById('importConfig').addEventListener('click', () => {
@@ -182,20 +258,18 @@ document.getElementById('configFileInput').addEventListener('change', (e) => {
           store.clear().onsuccess = () => {
             for (const [key, value] of Object.entries(userConfig)) {
               store.put({ key, value });
-            }
-            // Update in-memory config as well
+            }            // Update in-memory config as well
             config = { ...DEFAULT_CONFIG, ...userConfig };
-            populateDropdowns();
+            setupAwesompleteCombobox();
             showError('Config loaded!');
           };
         };
         request.onerror = () => {
           showError('Could not save config to IndexedDB.');
-        };
-      } else {
+        };      } else {
         // Fallback: just update in-memory config
         config = { ...DEFAULT_CONFIG, ...userConfig };
-        populateDropdowns();
+        setupAwesompleteCombobox();
         showError('Config loaded!');
       }
     } catch (err) {
@@ -207,7 +281,7 @@ document.getElementById('configFileInput').addEventListener('change', (e) => {
 
 // On load, try to load config from IndexedDB if available
 window.addEventListener('DOMContentLoaded', () => {
-  populateDropdowns();
+  setupAwesompleteCombobox();
   checkOffline();
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js');
@@ -233,7 +307,7 @@ window.addEventListener('DOMContentLoaded', () => {
             loadedConfig[key] = value;
           });
           config = { ...DEFAULT_CONFIG, ...loadedConfig };
-          populateDropdowns();
+          setupAwesompleteCombobox();
         }
       };
     };
